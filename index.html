@@ -2,7 +2,7 @@
 <html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RonzChat - Messenger</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,8 +14,9 @@
                         pill: {
                             blue: '#2563eb',
                             blueDark: '#1d4ed8',
-                            lightBg: '#f8fafc',
-                            lightPanel: '#ffffff',
+                            blueLight: '#3b82f6',
+                            bg: '#f1f5f9',
+                            panel: '#ffffff',
                             bubbleIn: '#ffffff',
                             bubbleOut: '#2563eb',
                         }
@@ -27,134 +28,137 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
         
-        /* Pure White Glassmorphism Mesh */
-        .light-mesh {
-            background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.1) 0%, transparent 40%),
-                        radial-gradient(circle at 90% 90%, rgba(14, 165, 233, 0.08) 0%, transparent 40%),
-                        #f1f5f9;
+        /* Pure White Mesh Background */
+        .pure-white-mesh {
+            background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.06) 0%, transparent 40%),
+                        #f8fafc;
         }
 
-        /* Pill Glass Panels */
-        .glass-light {
+        /* Glassmorphism Panel */
+        .glass-panel {
             background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(37, 99, 235, 0.15);
-            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.08);
+            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.06);
         }
 
         /* Animations */
-        @keyframes pillPop {
-            0% { opacity: 0; transform: scale(0.97) translateY(10px); }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.98) translateY(8px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         @keyframes neonGlow {
-            0%, 100% { box-shadow: 0 0 15px rgba(37, 99, 235, 0.4); }
-            50% { box-shadow: 0 0 30px rgba(37, 99, 235, 0.8); }
+            0%, 100% { box-shadow: 0 0 12px rgba(37, 99, 235, 0.3); }
+            50% { box-shadow: 0 0 24px rgba(37, 99, 235, 0.6); }
         }
 
-        .animate-pill { animation: pillPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .neon-glow { animation: neonGlow 4s infinite ease-in-out; }
+        .animate-pop { animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .neon-glow { animation: neonGlow 3.5s infinite ease-in-out; }
 
-        * { transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease; }
+        * { transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(37, 99, 235, 0.3); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: rgba(37, 99, 235, 0.25); border-radius: 9999px; }
     </style>
 </head>
-<body class="light-mesh h-full overflow-hidden text-gray-900 flex flex-col justify-center items-center p-0 md:p-3">
+<body class="pure-white-mesh h-full w-full overflow-hidden text-gray-900 flex flex-col justify-center items-center p-0 md:p-3">
 
-    <!-- GLOBAL NOTIFICATION BANNER -->
-    <div id="toast-banner" class="fixed top-6 right-6 z-[300] hidden max-w-sm px-5 py-3 rounded-full shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-[-20px] opacity-0 bg-pill-blue/90 text-white backdrop-blur-md border border-white/20"></div>
+    <!-- TOAST NOTIFICATION BANNER -->
+    <div id="toast-banner" class="fixed top-5 right-5 z-[300] hidden max-w-xs px-5 py-3 rounded-full shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-[-20px] opacity-0 bg-pill-blue text-white backdrop-blur-md border border-white/20"></div>
 
     <div id="app" class="h-full w-full flex justify-center items-center">
         
-        <!-- AUTH SCREEN -->
-        <div id="auth-screen" class="fixed inset-0 z-50 light-mesh flex flex-col justify-center items-center p-4 overflow-y-auto">
-            <div class="w-full max-w-md glass-light rounded-[36px] p-8 animate-pill">
+        <!-- AUTHENTICATION SCREEN -->
+        <div id="auth-screen" class="fixed inset-0 z-50 pure-white-mesh flex flex-col justify-center items-center p-4 overflow-y-auto">
+            <div class="w-full max-w-md glass-panel rounded-[36px] p-8 animate-pop">
                 
                 <div class="flex items-center space-x-4 mb-8">
-                    <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg neon-glow">
+                    <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg neon-glow">
                         <i class="fa-solid fa-comments"></i>
                     </div>
                     <div>
                         <h1 class="text-2xl font-black text-gray-900 tracking-tight">RonzChat</h1>
-                        <p class="text-xs text-blue-600 font-semibold tracking-wider uppercase">By RonzLabs</p>
+                        <p class="text-xs text-pill-blue font-bold tracking-wider uppercase">By RonzLabs</p>
                     </div>
                 </div>
 
-                <div class="flex p-1 bg-gray-200/70 rounded-full mb-6 shadow-inner border border-blue-500/10">
+                <div class="flex p-1 bg-gray-100 rounded-full mb-6 shadow-inner border border-blue-500/10">
                     <button type="button" id="tab-login-btn" class="flex-1 py-3 text-xs font-extrabold rounded-full text-white bg-pill-blue shadow-md transition-all">Sign In</button>
-                    <button type="button" id="tab-reg-btn" class="flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-blue-600 transition-all">Register</button>
+                    <button type="button" id="tab-reg-btn" class="flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-pill-blue transition-all">Register</button>
                 </div>
 
                 <!-- LOGIN FORM -->
-                <form id="login-form" class="space-y-4 animate-pill" onsubmit="return false;">
+                <form id="login-form" class="space-y-4 animate-pop" onsubmit="return false;">
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Email Address</label>
-                        <input type="email" id="login-email" required placeholder="name@example.com" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                        <input type="email" id="login-email" required placeholder="name@example.com" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-sm">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Password</label>
-                        <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                        <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-sm">
                     </div>
-                    <button type="submit" id="login-btn-action" class="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-95 transition duration-200 flex justify-center items-center space-x-2 text-xs uppercase tracking-wider">
-                        <span>Login to Dashboard</span>
+                    <button type="submit" id="login-btn-action" class="w-full py-4 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-95 transition duration-200 flex justify-center items-center space-x-2 text-xs uppercase tracking-wider">
+                        <span>Login to Account</span>
                     </button>
                 </form>
 
                 <!-- REGISTER FORM -->
-                <form id="reg-form" class="hidden space-y-4 animate-pill" onsubmit="return false;">
+                <form id="reg-form" class="hidden space-y-4 animate-pop" onsubmit="return false;">
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Full Name</label>
-                        <input type="text" id="reg-name" required placeholder="Name" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                        <input type="text" id="reg-name" required placeholder="Name" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-sm">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Email Address</label>
-                        <input type="email" id="reg-email" required placeholder="name@example.com" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                        <input type="email" id="reg-email" required placeholder="name@example.com" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-sm">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Password</label>
-                        <input type="password" id="reg-pass" required placeholder="Min 6 characters" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                        <input type="password" id="reg-pass" required placeholder="Min 6 characters" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-sm">
                     </div>
-                    <button type="submit" id="reg-btn-action" class="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-95 transition duration-200 flex justify-center items-center space-x-2 text-xs uppercase tracking-wider">
+                    <button type="submit" id="reg-btn-action" class="w-full py-4 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-95 transition duration-200 flex justify-center items-center space-x-2 text-xs uppercase tracking-wider">
                         <span>Create Account</span>
                     </button>
                 </form>
 
                 <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-blue-500/20"></div></div>
-                    <div class="relative flex justify-center text-[10px] font-bold uppercase tracking-widest"><span class="glass-light px-4 text-blue-600">Quick Test</span></div>
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-blue-500/15"></div></div>
+                    <div class="relative flex justify-center text-[10px] font-bold uppercase tracking-widest"><span class="glass-panel px-4 text-pill-blue">Instant Access</span></div>
                 </div>
 
-                <button type="button" id="demo-btn-action" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-full shadow-lg border border-blue-500/30 hover:scale-[1.01] active:scale-95 flex justify-center items-center space-x-2 text-xs transition">
-                    <i class="fa-solid fa-bolt text-cyan-400"></i>
+                <button type="button" id="demo-btn-action" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-full shadow-lg border border-blue-500/20 hover:scale-[1.01] active:scale-95 flex justify-center items-center space-x-2 text-xs transition">
+                    <i class="fa-solid fa-bolt text-yellow-400"></i>
                     <span>Launch Instant Demo Mode</span>
                 </button>
             </div>
         </div>
 
-        <!-- MAIN CHAT APPLICATION -->
-        <div id="main-chat" class="hidden w-full h-full max-w-[1700px] md:h-[calc(100%-16px)] md:rounded-[36px] shadow-2xl flex overflow-hidden glass-light animate-pill">
+        <!-- MAIN CHAT APPLICATION CONTAINER -->
+        <div id="main-chat" class="hidden w-full h-full max-w-[1700px] md:h-[calc(100%-12px)] md:rounded-[36px] shadow-2xl flex overflow-hidden glass-panel animate-pop">
             
-            <!-- SIDEBAR -->
-            <div id="sidebar" class="w-full md:w-[380px] lg:w-[420px] h-full flex flex-col bg-white/60 border-r border-blue-500/15 flex-shrink-0">
+            <!-- SIDEBAR CONTACTS LIST -->
+            <div id="sidebar" class="w-full md:w-[380px] lg:w-[420px] h-full flex flex-col bg-white/70 border-r border-blue-500/15 flex-shrink-0">
                 
-                <!-- Sidebar Header -->
-                <div class="h-20 px-6 flex items-center justify-between border-b border-blue-500/15 bg-white/40 backdrop-blur-md">
-                    <div class="flex items-center space-x-3.5 cursor-pointer group" id="open-settings-btn" title="Edit Profile">
-                        <div id="my-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-base shadow-md shadow-blue-500/30 group-hover:scale-105 transition">U</div>
+                <!-- Sidebar Top Header -->
+                <div class="h-20 px-5 flex items-center justify-between border-b border-blue-500/15 bg-white/40 backdrop-blur-md">
+                    <div class="flex items-center space-x-3 cursor-pointer group" id="open-settings-btn" title="Edit Profile">
+                        <div id="my-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center font-bold text-base shadow-md shadow-blue-500/30 group-hover:scale-105 transition">U</div>
                         <div class="flex flex-col">
-                            <span id="my-name" class="font-bold text-xs text-gray-900 leading-tight group-hover:text-blue-600 transition">User</span>
+                            <span id="my-name" class="font-bold text-xs text-gray-900 leading-tight group-hover:text-pill-blue transition">User</span>
                             <span id="my-status" class="text-[11px] text-gray-500 truncate max-w-[130px]">Hey there!</span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-1.5 text-gray-600">
-                        <button type="button" id="profile-settings-icon-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-blue-500/10 hover:text-blue-600 transition" title="Settings">
+                    <div class="flex items-center space-x-1 text-gray-600">
+                        <button type="button" id="profile-settings-icon-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-blue-500/10 hover:text-pill-blue transition" title="Profile Settings">
                             <i class="fa-solid fa-gear text-xs"></i>
                         </button>
                         <button type="button" id="logout-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition" title="Logout">
@@ -163,16 +167,16 @@
                     </div>
                 </div>
 
-                <!-- Contact Search -->
+                <!-- Contact Search Bar -->
                 <div class="p-4 bg-transparent">
                     <div class="relative flex items-center">
-                        <i class="fa-solid fa-magnifying-glass absolute left-5 text-blue-600 text-xs"></i>
-                        <input type="text" id="search-input" placeholder="Search chats or start new..." class="w-full bg-gray-100/90 rounded-full pl-12 pr-5 py-3 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-pill-blue transition border border-blue-500/10 shadow-inner">
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 text-pill-blue text-xs"></i>
+                        <input type="text" id="search-input" placeholder="Search chats or start new..." class="w-full bg-gray-100 rounded-full pl-12 pr-5 py-3 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-pill-blue transition border border-blue-500/10 shadow-inner">
                     </div>
                 </div>
 
-                <!-- Contacts List -->
-                <div id="contacts-list" class="flex-1 overflow-y-auto px-3 space-y-1.5">
+                <!-- Contacts Item Wrapper -->
+                <div id="contacts-list" class="flex-1 overflow-y-auto px-3 space-y-1">
                     <div class="p-6 text-center text-gray-400 text-xs">Loading contacts...</div>
                 </div>
             </div>
@@ -180,46 +184,47 @@
             <!-- CHAT VIEW WINDOW -->
             <div id="chat-window" class="hidden md:flex flex-1 flex-col h-full bg-transparent relative">
                 
-                <div id="no-chat" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/50 backdrop-blur-md text-center p-6 animate-pill">
-                    <div class="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-600 text-4xl mb-4 shadow-inner neon-glow">
+                <!-- Blank State Welcome Screen -->
+                <div id="no-chat" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 backdrop-blur-md text-center p-6 animate-pop">
+                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center text-pill-blue text-3xl mb-4 shadow-inner neon-glow">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h2 class="text-2xl font-extrabold text-gray-800 mb-1 tracking-tight">RonzChat Light Elite</h2>
-                    <p class="text-xs text-gray-500 max-w-sm">Select a contact from the panel to start secure pill messaging.</p>
+                    <h2 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">RonzChat Light Elite</h2>
+                    <p class="text-xs text-gray-500 max-w-xs">Select a contact from the left sidebar panel to start chatting.</p>
                 </div>
 
                 <!-- Active Chat Panel -->
-                <div id="active-chat" class="hidden flex flex-col h-full w-full animate-pill">
+                <div id="active-chat" class="hidden flex flex-col h-full w-full animate-pop">
                     
-                    <!-- Chat Header -->
-                    <div class="h-20 px-6 bg-white/40 backdrop-blur-xl flex items-center justify-between border-b border-blue-500/15 z-10 shadow-sm">
-                        <div class="flex items-center space-x-3.5 cursor-pointer group" id="chat-header-info" title="View Profile">
-                            <button type="button" id="back-btn" class="md:hidden text-gray-600 text-lg p-1 pr-2">
+                    <!-- Active Chat Header -->
+                    <div class="h-20 px-6 bg-white/50 backdrop-blur-xl flex items-center justify-between border-b border-blue-500/15 z-10 shadow-sm">
+                        <div class="flex items-center space-x-3 cursor-pointer group" id="chat-header-info" title="View Profile">
+                            <button type="button" id="back-btn" class="md:hidden text-gray-600 text-lg p-1 pr-2 hover:text-pill-blue">
                                 <i class="fa-solid fa-arrow-left"></i>
                             </button>
-                            <div id="chat-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-base shadow-md">C</div>
+                            <div id="chat-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center font-bold text-base shadow-md">C</div>
                             <div>
-                                <h3 id="chat-name" class="font-bold text-xs text-gray-900 leading-tight group-hover:text-blue-600 transition">Name</h3>
-                                <p id="chat-sub-status" class="text-[11px] text-blue-600 font-semibold">online</p>
+                                <h3 id="chat-name" class="font-bold text-xs text-gray-900 leading-tight group-hover:text-pill-blue transition">Name</h3>
+                                <p id="chat-sub-status" class="text-[11px] text-gray-500 font-medium truncate max-w-[180px]">Hey there!</p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2 text-gray-600">
-                            <button type="button" id="clear-chat-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition" title="Clear Chat">
+                            <button type="button" id="clear-chat-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition" title="Clear Chat History">
                                 <i class="fa-solid fa-trash-can text-xs"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Messages List Container -->
+                    <!-- Messages Container -->
                     <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-3"></div>
 
                     <!-- Input Bar -->
-                    <div class="h-20 px-6 bg-white/40 backdrop-blur-xl flex items-center space-x-3 border-t border-blue-500/15 z-10">
+                    <div class="h-20 px-6 bg-white/50 backdrop-blur-xl flex items-center space-x-3 border-t border-blue-500/15 z-10">
                         <input type="file" id="image-file-input" accept="image/*" class="hidden">
-                        <button type="button" id="attach-img-btn" class="w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-blue-500/10 hover:text-blue-600 transition" title="Attach Image">
+                        <button type="button" id="attach-img-btn" class="w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-blue-500/10 hover:text-pill-blue transition" title="Attach Image">
                             <i class="fa-solid fa-image text-sm"></i>
                         </button>
-                        <input type="text" id="msg-input" placeholder="Type a message..." class="flex-1 bg-gray-100/90 rounded-full px-6 py-3 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-pill-blue transition border border-blue-500/15 shadow-inner">
+                        <input type="text" id="msg-input" placeholder="Type a message..." class="flex-1 bg-gray-100 rounded-full px-6 py-3 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-pill-blue transition border border-blue-500/10 shadow-inner">
                         <button type="button" id="send-btn" class="w-11 h-11 bg-pill-blue hover:bg-pill-blueDark text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 transition active:scale-95 flex-shrink-0">
                             <i class="fa-solid fa-paper-plane text-xs"></i>
                         </button>
@@ -230,9 +235,9 @@
         </div>
     </div>
 
-    <!-- SETTINGS / PROFILE MODAL -->
-    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-light w-full max-w-md rounded-[36px] p-8 animate-pill">
+    <!-- PROFILE EDIT SETTINGS MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-[36px] p-8 animate-pop">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-base font-bold text-gray-900">Profile Settings</h3>
                 <button type="button" id="close-settings-btn" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
@@ -240,28 +245,38 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-[11px] font-bold uppercase text-gray-500 mb-1.5 ml-3">Display Name</label>
-                    <input type="text" id="edit-name-input" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    <input type="text" id="edit-name-input" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold uppercase text-gray-500 mb-1.5 ml-3">About / Status</label>
-                    <input type="text" id="edit-status-input" placeholder="Hey there! I am using RonzChat." class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    <input type="text" id="edit-status-input" placeholder="Hey there! I am using RonzChat." class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
                 </div>
                 <button type="button" id="save-settings-btn" class="w-full py-3.5 bg-pill-blue hover:bg-pill-blueDark text-white font-bold rounded-full shadow-lg shadow-blue-500/30 transition text-xs uppercase tracking-wider mt-2">Save Changes</button>
             </div>
         </div>
     </div>
 
-    <!-- CONTACT PROFILE VIEW MODAL -->
-    <div id="profile-view-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-light w-full max-w-sm rounded-[36px] p-8 text-center relative animate-pill">
+    <!-- CONTACT PROFILE CARD VIEW MODAL -->
+    <div id="profile-view-modal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-[36px] p-8 text-center relative animate-pop">
             <button type="button" id="close-profile-view-btn" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
-            <div id="view-profile-avatar" class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-3xl shadow-xl shadow-blue-500/30 mx-auto mb-4 neon-glow">U</div>
+            <div id="view-profile-avatar" class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center font-bold text-3xl shadow-xl shadow-blue-500/30 mx-auto mb-4 neon-glow">U</div>
             <h3 id="view-profile-name" class="text-lg font-extrabold text-gray-900 mb-1">Name</h3>
             <p id="view-profile-email" class="text-xs text-gray-400 mb-6 font-medium">email@example.com</p>
             <div class="bg-blue-500/10 p-4 rounded-3xl text-left border border-blue-500/20">
-                <span class="block text-[10px] font-bold uppercase text-blue-600 mb-1 tracking-wider ml-2">About</span>
+                <span class="block text-[10px] font-bold uppercase text-pill-blue mb-1 tracking-wider ml-2">About</span>
                 <p id="view-profile-status" class="text-xs text-gray-700 font-medium ml-2">Hey there!</p>
             </div>
+        </div>
+    </div>
+
+    <!-- IMAGE PREVIEW MODAL -->
+    <div id="image-preview-modal" class="hidden fixed inset-0 z-[400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="relative max-w-3xl w-full flex flex-col items-center animate-pop">
+            <button type="button" id="close-image-preview-btn" class="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img id="preview-modal-img" src="" class="max-h-[80vh] w-auto max-w-full rounded-3xl shadow-2xl object-contain border border-white/20">
         </div>
     </div>
 
@@ -305,14 +320,14 @@
         function showToast(message, type = 'error') {
             const toast = document.getElementById('toast-banner');
             toast.innerText = message;
-            toast.className = `fixed top-6 right-6 z-[300] max-w-sm px-5 py-3 rounded-full shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-0 opacity-100 backdrop-blur-md ${
-                type === 'error' ? 'bg-red-500/90 text-white' : 'bg-pill-blue/90 text-white'
+            toast.className = `fixed top-5 right-5 z-[300] max-w-xs px-5 py-3 rounded-full shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-0 opacity-100 backdrop-blur-md ${
+                type === 'error' ? 'bg-red-500 text-white' : 'bg-pill-blue text-white'
             }`;
             toast.classList.remove('hidden');
             setTimeout(() => {
                 toast.classList.add('translate-y-[-20px]', 'opacity-0');
                 setTimeout(() => toast.classList.add('hidden'), 300);
-            }, 3500);
+            }, 3200);
         }
 
         function formatTime(timestamp) {
@@ -357,14 +372,14 @@
             document.getElementById('login-form').classList.remove('hidden');
             document.getElementById('reg-form').classList.add('hidden');
             document.getElementById('tab-login-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-white bg-pill-blue shadow-md transition-all";
-            document.getElementById('tab-reg-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-blue-600 transition-all";
+            document.getElementById('tab-reg-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-pill-blue transition-all";
         });
 
         document.getElementById('tab-reg-btn').addEventListener('click', () => {
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('reg-form').classList.remove('hidden');
             document.getElementById('tab-reg-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-white bg-pill-blue shadow-md transition-all";
-            document.getElementById('tab-login-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-blue-600 transition-all";
+            document.getElementById('tab-login-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-pill-blue transition-all";
         });
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -410,9 +425,9 @@
         document.getElementById('demo-btn-action').addEventListener('click', () => {
             isDemoMode = true;
             currentUser = { uid: "demo_user_123" };
-            window.userData = { name: "Ronz Davil (Demo)", status: "Pill Elite Light Mode" };
+            window.userData = { name: "Ronz Davil (Demo)", status: "Pill Light Edition Active" };
             contactUnreadCounts['demo_c1'] = 1; 
-            contactLastMsgs['demo_c1'] = { text: "Hey! Light Pill UI active.", time: new Date() };
+            contactLastMsgs['demo_c1'] = { text: "Hey! Everything is ready to use.", time: new Date() };
             showToast("Entered Instant Demo Mode!", "success");
             enterApp();
         });
@@ -433,7 +448,7 @@
         function loadContacts() {
             if(isDemoMode) {
                 contactsCache = [
-                    { uid: 'demo_c1', name: 'Support Bot', email: 'bot@ronzchat.com', status: 'Light Glassy Assistant' },
+                    { uid: 'demo_c1', name: 'Support Bot', email: 'bot@ronzchat.com', status: 'System Assistant' },
                     { uid: 'demo_c2', name: 'Ronz Support', email: 'support@ronzchat.com', status: 'AI System Helper' }
                 ];
                 renderContacts(contactsCache);
@@ -518,16 +533,16 @@
                 const lastMsgTimeStr = lastMsgData ? formatTime(lastMsgData.time) : '';
 
                 const item = document.createElement('div');
-                item.className = "flex items-center p-3.5 mx-2 my-1 cursor-pointer rounded-full hover:bg-blue-500/10 transition-all relative group animate-pill";
+                item.className = "flex items-center p-3.5 mx-1 my-1 cursor-pointer rounded-full hover:bg-blue-500/10 transition-all relative group animate-pop";
                 item.onclick = () => selectContact(c);
                 item.innerHTML = `
                     <div class="relative mr-3.5 flex-shrink-0">
-                        <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-sm shadow-md">${(c.name || 'U').charAt(0).toUpperCase()}</div>
+                        <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center font-bold text-sm shadow-md">${(c.name || 'U').charAt(0).toUpperCase()}</div>
                     </div>
                     <div class="flex-1 min-w-0 pr-6">
                         <div class="flex justify-between items-baseline mb-1">
                             <h4 class="font-bold text-gray-900 text-xs truncate">${c.name || 'User'}</h4>
-                            <span class="text-[10px] ${unread > 0 ? 'text-blue-600 font-extrabold' : 'text-gray-400'} ml-2">${lastMsgTimeStr}</span>
+                            <span class="text-[10px] ${unread > 0 ? 'text-pill-blue font-extrabold' : 'text-gray-400'} ml-2">${lastMsgTimeStr}</span>
                         </div>
                         <p class="text-[11px] ${unread > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'} truncate">${escapeHTML(lastMsgText)}</p>
                     </div>
@@ -563,7 +578,7 @@
                         const statusEl = document.getElementById('chat-sub-status');
                         if(data.typingTo === currentUser.uid) {
                             statusEl.innerText = "typing...";
-                            statusEl.className = "text-[11px] text-blue-600 font-bold animate-pulse";
+                            statusEl.className = "text-[11px] text-pill-blue font-bold animate-pulse";
                         } else {
                             statusEl.innerText = c.status || "Hey there!";
                             statusEl.className = "text-[11px] text-gray-500 font-medium truncate max-w-[200px]";
@@ -591,8 +606,8 @@
 
             if(isDemoMode) {
                 renderMessages([
-                    { senderId: targetUid, text: 'Hey! Pure White glassy light mode active.', read: true, timestamp: { seconds: Math.floor(Date.now()/1000) - 60 } },
-                    { senderId: currentUser.uid, text: 'Dark mode has been completely removed.', read: true, timestamp: { seconds: Math.floor(Date.now()/1000) } }
+                    { senderId: targetUid, text: 'Hey! Ready to use final release active.', read: true, timestamp: { seconds: Math.floor(Date.now()/1000) - 60 } },
+                    { senderId: currentUser.uid, text: 'Awesome! Responsive UI and image modal working.', read: true, timestamp: { seconds: Math.floor(Date.now()/1000) } }
                 ]);
                 return;
             }
@@ -648,7 +663,7 @@
                     const dateBadge = document.createElement('div');
                     dateBadge.className = "flex justify-center my-4";
                     dateBadge.innerHTML = `
-                        <span class="glass-light text-gray-500 text-[10px] font-bold px-4 py-1.5 rounded-full shadow-sm">
+                        <span class="glass-panel text-gray-500 text-[10px] font-bold px-4 py-1.5 rounded-full shadow-sm">
                             ${dateLabel}
                         </span>
                     `;
@@ -660,18 +675,18 @@
                     if(!m.timestamp) {
                         tickIcon = `<i class="fa-regular fa-clock text-[10px] text-white/70 ml-1"></i>`;
                     } else if(m.read) {
-                        tickIcon = `<i class="fa-solid fa-check-double text-[10px] text-cyan-200 ml-1"></i>`;
+                        tickIcon = `<i class="fa-solid fa-check-double text-[10px] text-sky-200 ml-1"></i>`;
                     } else {
                         tickIcon = `<i class="fa-solid fa-check-double text-[10px] text-white/70 ml-1"></i>`;
                     }
                 }
 
                 const msgWrapper = document.createElement('div');
-                msgWrapper.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-2.5 animate-pill`;
+                msgWrapper.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-2.5 animate-pop`;
 
                 let contentHtml = '';
                 if(m.imageUrl) {
-                    contentHtml = `<div class="mb-1.5 rounded-3xl overflow-hidden max-w-[260px] shadow-sm"><img src="${m.imageUrl}" alt="Shared Photo" class="w-full object-cover rounded-3xl cursor-pointer hover:scale-105 transition duration-300" onclick="window.open('${m.imageUrl}', '_blank')"></div>`;
+                    contentHtml = `<div class="mb-1.5 rounded-3xl overflow-hidden max-w-[260px] shadow-sm"><img src="${m.imageUrl}" alt="Shared Photo" class="w-full object-cover rounded-3xl cursor-pointer hover:scale-105 transition duration-300 msg-img-trigger"></div>`;
                 }
                 if(m.text) {
                     contentHtml += `<div class="pr-14 break-words leading-relaxed">${escapeHTML(m.text)}</div>`;
@@ -680,7 +695,7 @@
                 msgWrapper.innerHTML = `
                     <div class="max-w-[80%] sm:max-w-[70%] px-5 py-3.5 rounded-[28px] text-xs sm:text-sm ${
                         isMe 
-                            ? 'bg-pill-blue text-white rounded-tr-sm shadow-lg shadow-blue-500/25' 
+                            ? 'bg-pill-blue text-white rounded-tr-sm shadow-lg shadow-blue-500/20' 
                             : 'bg-white text-gray-900 rounded-tl-sm shadow-md border border-blue-500/10'
                     } relative group">
                         ${contentHtml}
@@ -690,11 +705,27 @@
                         </div>
                     </div>
                 `;
+
+                if(m.imageUrl) {
+                    const imgEl = msgWrapper.querySelector('.msg-img-trigger');
+                    if(imgEl) {
+                        imgEl.onclick = () => {
+                            document.getElementById('preview-modal-img').src = m.imageUrl;
+                            document.getElementById('image-preview-modal').classList.remove('hidden');
+                        };
+                    }
+                }
+
                 container.appendChild(msgWrapper);
             });
 
             container.scrollTop = container.scrollHeight;
         }
+
+        // Image Preview Modal Closer
+        document.getElementById('close-image-preview-btn').onclick = () => {
+            document.getElementById('image-preview-modal').classList.add('hidden');
+        };
 
         // Image Attachment Handler
         document.getElementById('attach-img-btn').addEventListener('click', () => {
@@ -716,16 +747,23 @@
                 if(isDemoMode) {
                     const container = document.getElementById('messages-container');
                     const msgWrapper = document.createElement('div');
-                    msgWrapper.className = `flex justify-end mb-2.5 animate-pill`;
+                    msgWrapper.className = `flex justify-end mb-2.5 animate-pop`;
                     msgWrapper.innerHTML = `
                         <div class="max-w-[80%] px-5 py-3.5 rounded-[28px] text-xs bg-pill-blue text-white rounded-tr-sm shadow-lg">
-                            <div class="mb-1.5 rounded-3xl overflow-hidden max-w-[260px]"><img src="${base64Image}" class="w-full object-cover rounded-3xl"></div>
+                            <div class="mb-1.5 rounded-3xl overflow-hidden max-w-[260px]"><img src="${base64Image}" class="w-full object-cover rounded-3xl cursor-pointer msg-img-trigger"></div>
                             <div class="float-right text-[9px] text-white/80 flex items-center -mb-1 ml-3">
                                 <span>${formatTime(new Date())}</span>
-                                <i class="fa-solid fa-check-double text-[10px] text-cyan-200 ml-1"></i>
+                                <i class="fa-solid fa-check-double text-[10px] text-sky-200 ml-1"></i>
                             </div>
                         </div>
                     `;
+                    const imgEl = msgWrapper.querySelector('.msg-img-trigger');
+                    if(imgEl) {
+                        imgEl.onclick = () => {
+                            document.getElementById('preview-modal-img').src = base64Image;
+                            document.getElementById('image-preview-modal').classList.remove('hidden');
+                        };
+                    }
                     container.appendChild(msgWrapper);
                     container.scrollTop = container.scrollHeight;
                     return;
@@ -771,13 +809,13 @@
             if(isDemoMode) {
                 const container = document.getElementById('messages-container');
                 const msgWrapper = document.createElement('div');
-                msgWrapper.className = `flex justify-end mb-2.5 animate-pill`;
+                msgWrapper.className = `flex justify-end mb-2.5 animate-pop`;
                 msgWrapper.innerHTML = `
                     <div class="max-w-[80%] px-5 py-3.5 rounded-[28px] text-xs sm:text-sm bg-pill-blue text-white rounded-tr-sm shadow-lg">
                         <div class="pr-14">${escapeHTML(text)}</div>
                         <div class="float-right text-[9px] text-white/80 flex items-center -mb-1 ml-3">
                             <span>${formatTime(new Date())}</span>
-                            <i class="fa-solid fa-check-double text-[10px] text-cyan-200 ml-1"></i>
+                            <i class="fa-solid fa-check-double text-[10px] text-sky-200 ml-1"></i>
                         </div>
                     </div>
                 `;
@@ -799,7 +837,7 @@
             }
         }
 
-        // Profile Settings Modal
+        // Profile Settings Modal Toggle
         const settingsModal = document.getElementById('settings-modal');
         const openProfileModal = () => {
             document.getElementById('edit-name-input').value = window.userData.name || '';
@@ -836,7 +874,7 @@
             settingsModal.classList.add('hidden');
         });
 
-        // Contact Profile View Modal
+        // Contact Profile Card View Modal Toggle
         const profileViewModal = document.getElementById('profile-view-modal');
         document.getElementById('chat-header-info').addEventListener('click', () => {
             if(!activeContact) return;
@@ -848,7 +886,7 @@
         });
         document.getElementById('close-profile-view-btn').addEventListener('click', () => profileViewModal.classList.add('hidden'));
 
-        // Clear Chat Feature
+        // Clear Chat History Feature
         document.getElementById('clear-chat-btn').addEventListener('click', async () => {
             if(!activeContact) return;
             if(!confirm("Are you sure you want to clear all messages in this chat?")) return;
