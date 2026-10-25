@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RonzChat - Messenger</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pill: {
+                            blue: '#2563eb',
+                            blueDark: '#1d4ed8',
+                            lightBg: '#f8fafc',
+                            lightPanel: '#ffffff',
+                            bubbleIn: '#ffffff',
+                            bubbleOut: '#2563eb',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* Pure White Glassmorphism Mesh */
+        .light-mesh {
+            background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 90%, rgba(14, 165, 233, 0.08) 0%, transparent 40%),
+                        #f1f5f9;
+        }
+
+        /* Pill Glass Panels */
+        .glass-light {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.08);
+        }
+
+        /* Animations */
+        @keyframes pillPop {
+            0% { opacity: 0; transform: scale(0.97) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes neonGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(37, 99, 235, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(37, 99, 235, 0.8); }
+        }
+
+        .animate-pill { animation: pillPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .neon-glow { animation: neonGlow 4s infinite ease-in-out; }
+
+        * { transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(37, 99, 235, 0.3); border-radius: 9999px; }
+    </style>
+</head>
+<body class="light-mesh h-full overflow-hidden text-gray-900 flex flex-col justify-center items-center p-0 md:p-3">
+
+    <!-- GLOBAL NOTIFICATION BANNER -->
+    <div id="toast-banner" class="fixed top-6 right-6 z-[300] hidden max-w-sm px-5 py-3 rounded-full shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-[-20px] opacity-0 bg-pill-blue/90 text-white backdrop-blur-md border border-white/20"></div>
+
+    <div id="app" class="h-full w-full flex justify-center items-center">
+        
+        <!-- AUTH SCREEN -->
+        <div id="auth-screen" class="fixed inset-0 z-50 light-mesh flex flex-col justify-center items-center p-4 overflow-y-auto">
+            <div class="w-full max-w-md glass-light rounded-[36px] p-8 animate-pill">
+                
+                <div class="flex items-center space-x-4 mb-8">
+                    <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg neon-glow">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-gray-900 tracking-tight">RonzChat</h1>
+                        <p class="text-xs text-blue-600 font-semibold tracking-wider uppercase">By RonzLabs</p>
+                    </div>
+                </div>
+
+                <div class="flex p-1 bg-gray-200/70 rounded-full mb-6 shadow-inner border border-blue-500/10">
+                    <button type="button" id="tab-login-btn" class="flex-1 py-3 text-xs font-extrabold rounded-full text-white bg-pill-blue shadow-md transition-all">Sign In</button>
+                    <button type="button" id="tab-reg-btn" class="flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-blue-600 transition-all">Register</button>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="login-form" class="space-y-4 animate-pill" onsubmit="return false;">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Email Address</label>
+                        <input type="email" id="login-email" required placeholder="name@example.com" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Password</label>
+                        <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    </div>
+                    <button type="submit" id="login-btn-action" class="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-95 transition duration-200 flex justify-center items-center space-x-2 text-xs uppercase tracking-wider">
+                        <span>Login to Dashboard</span>
+                    </button>
+                </form>
+
+                <!-- REGISTER FORM -->
+                <form id="reg-form" class="hidden space-y-4 animate-pill" onsubmit="return false;">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Full Name</label>
+                        <input type="text" id="reg-name" required placeholder="Name" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Email Address</label>
+                        <input type="email" id="reg-email" required placeholder="name@example.com" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 ml-3">Password</label>
+                        <input type="password" id="reg-pass" required placeholder="Min 6 characters" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                    </div>
+                    <button type="submit" id="reg-btn-action" class="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-95 transition duration-200 flex justify-center items-center space-x-2 text-xs uppercase tracking-wider">
+                        <span>Create Account</span>
+                    </button>
+                </form>
+
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-blue-500/20"></div></div>
+                    <div class="relative flex justify-center text-[10px] font-bold uppercase tracking-widest"><span class="glass-light px-4 text-blue-600">Quick Test</span></div>
+                </div>
+
+                <button type="button" id="demo-btn-action" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-full shadow-lg border border-blue-500/30 hover:scale-[1.01] active:scale-95 flex justify-center items-center space-x-2 text-xs transition">
+                    <i class="fa-solid fa-bolt text-cyan-400"></i>
+                    <span>Launch Instant Demo Mode</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN CHAT APPLICATION -->
+        <div id="main-chat" class="hidden w-full h-full max-w-[1700px] md:h-[calc(100%-16px)] md:rounded-[36px] shadow-2xl flex overflow-hidden glass-light animate-pill">
+            
+            <!-- SIDEBAR -->
+            <div id="sidebar" class="w-full md:w-[380px] lg:w-[420px] h-full flex flex-col bg-white/60 border-r border-blue-500/15 flex-shrink-0">
+                
+                <!-- Sidebar Header -->
+                <div class="h-20 px-6 flex items-center justify-between border-b border-blue-500/15 bg-white/40 backdrop-blur-md">
+                    <div class="flex items-center space-x-3.5 cursor-pointer group" id="open-settings-btn" title="Edit Profile">
+                        <div id="my-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-base shadow-md shadow-blue-500/30 group-hover:scale-105 transition">U</div>
+                        <div class="flex flex-col">
+                            <span id="my-name" class="font-bold text-xs text-gray-900 leading-tight group-hover:text-blue-600 transition">User</span>
+                            <span id="my-status" class="text-[11px] text-gray-500 truncate max-w-[130px]">Hey there!</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1.5 text-gray-600">
+                        <button type="button" id="profile-settings-icon-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-blue-500/10 hover:text-blue-600 transition" title="Settings">
+                            <i class="fa-solid fa-gear text-xs"></i>
+                        </button>
+                        <button type="button" id="logout-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contact Search -->
+                <div class="p-4 bg-transparent">
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 text-blue-600 text-xs"></i>
+                        <input type="text" id="search-input" placeholder="Search chats or start new..." class="w-full bg-gray-100/90 rounded-full pl-12 pr-5 py-3 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-pill-blue transition border border-blue-500/10 shadow-inner">
+                    </div>
+                </div>
+
+                <!-- Contacts List -->
+                <div id="contacts-list" class="flex-1 overflow-y-auto px-3 space-y-1.5">
+                    <div class="p-6 text-center text-gray-400 text-xs">Loading contacts...</div>
+                </div>
+            </div>
+
+            <!-- CHAT VIEW WINDOW -->
+            <div id="chat-window" class="hidden md:flex flex-1 flex-col h-full bg-transparent relative">
+                
+                <div id="no-chat" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/50 backdrop-blur-md text-center p-6 animate-pill">
+                    <div class="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-600 text-4xl mb-4 shadow-inner neon-glow">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-gray-800 mb-1 tracking-tight">RonzChat Light Elite</h2>
+                    <p class="text-xs text-gray-500 max-w-sm">Select a contact from the panel to start secure pill messaging.</p>
+                </div>
+
+                <!-- Active Chat Panel -->
+                <div id="active-chat" class="hidden flex flex-col h-full w-full animate-pill">
+                    
+                    <!-- Chat Header -->
+                    <div class="h-20 px-6 bg-white/40 backdrop-blur-xl flex items-center justify-between border-b border-blue-500/15 z-10 shadow-sm">
+                        <div class="flex items-center space-x-3.5 cursor-pointer group" id="chat-header-info" title="View Profile">
+                            <button type="button" id="back-btn" class="md:hidden text-gray-600 text-lg p-1 pr-2">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <div id="chat-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-base shadow-md">C</div>
+                            <div>
+                                <h3 id="chat-name" class="font-bold text-xs text-gray-900 leading-tight group-hover:text-blue-600 transition">Name</h3>
+                                <p id="chat-sub-status" class="text-[11px] text-blue-600 font-semibold">online</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-gray-600">
+                            <button type="button" id="clear-chat-btn" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition" title="Clear Chat">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Messages List Container -->
+                    <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-3"></div>
+
+                    <!-- Input Bar -->
+                    <div class="h-20 px-6 bg-white/40 backdrop-blur-xl flex items-center space-x-3 border-t border-blue-500/15 z-10">
+                        <input type="file" id="image-file-input" accept="image/*" class="hidden">
+                        <button type="button" id="attach-img-btn" class="w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-blue-500/10 hover:text-blue-600 transition" title="Attach Image">
+                            <i class="fa-solid fa-image text-sm"></i>
+                        </button>
+                        <input type="text" id="msg-input" placeholder="Type a message..." class="flex-1 bg-gray-100/90 rounded-full px-6 py-3 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-pill-blue transition border border-blue-500/15 shadow-inner">
+                        <button type="button" id="send-btn" class="w-11 h-11 bg-pill-blue hover:bg-pill-blueDark text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 transition active:scale-95 flex-shrink-0">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SETTINGS / PROFILE MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-light w-full max-w-md rounded-[36px] p-8 animate-pill">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-base font-bold text-gray-900">Profile Settings</h3>
+                <button type="button" id="close-settings-btn" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-gray-500 mb-1.5 ml-3">Display Name</label>
+                    <input type="text" id="edit-name-input" class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-gray-500 mb-1.5 ml-3">About / Status</label>
+                    <input type="text" id="edit-status-input" placeholder="Hey there! I am using RonzChat." class="w-full px-5 py-3.5 rounded-full border border-blue-500/20 bg-white/70 text-gray-900 text-xs outline-none focus:ring-2 focus:ring-pill-blue transition shadow-inner">
+                </div>
+                <button type="button" id="save-settings-btn" class="w-full py-3.5 bg-pill-blue hover:bg-pill-blueDark text-white font-bold rounded-full shadow-lg shadow-blue-500/30 transition text-xs uppercase tracking-wider mt-2">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT PROFILE VIEW MODAL -->
+    <div id="profile-view-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-light w-full max-w-sm rounded-[36px] p-8 text-center relative animate-pill">
+            <button type="button" id="close-profile-view-btn" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
+            <div id="view-profile-avatar" class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-3xl shadow-xl shadow-blue-500/30 mx-auto mb-4 neon-glow">U</div>
+            <h3 id="view-profile-name" class="text-lg font-extrabold text-gray-900 mb-1">Name</h3>
+            <p id="view-profile-email" class="text-xs text-gray-400 mb-6 font-medium">email@example.com</p>
+            <div class="bg-blue-500/10 p-4 rounded-3xl text-left border border-blue-500/20">
+                <span class="block text-[10px] font-bold uppercase text-blue-600 mb-1 tracking-wider ml-2">About</span>
+                <p id="view-profile-status" class="text-xs text-gray-700 font-medium ml-2">Hey there!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK v11 MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, addDoc, deleteDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8AO4KLDskzqgmSldCTKLDDiMK0JIXMOQ",
+            authDomain: "ronzchat-53147.firebaseapp.com",
+            projectId: "ronzchat-53147",
+            storageBucket: "ronzchat-53147.firebasestorage.app",
+            messagingSenderId: "704506071496",
+            appId: "1:704506071496:web:3bcc8aaa52ea16d16a58fd"
+        };
+
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setPersistence(auth, browserLocalPersistence).catch(err => console.error(err));
+        } catch(err) {
+            console.warn("Firebase initialization warning:", err);
+        }
+
+        let currentUser = null;
+        let activeContact = null;
+        let isDemoMode = false;
+        let msgUnsubscribe = null;
+        let contactUnsubscribe = null;
+        let contactsCache = [];
+        let contactUnreadCounts = {}; 
+        let unreadListeners = {};
+        let contactLastMsgs = {}; 
+        let activeContactStatusListener = null;
+        let typingTimeout = null;
+
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast-banner');
+            toast.innerText = message;
+            toast.className = `fixed top-6 right-6 z-[300] max-w-sm px-5 py-3 rounded-full shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-0 opacity-100 backdrop-blur-md ${
+                type === 'error' ? 'bg-red-500/90 text-white' : 'bg-pill-blue/90 text-white'
+            }`;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3500);
+        }
+
+        function formatTime(timestamp) {
+            if(!timestamp) return '';
+            let date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDateLabel(timestamp) {
+            if(!timestamp) return '';
+            let date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) return 'Today';
+            if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+            return date.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        if(auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user && !currentUser) {
+                    currentUser = user;
+                    try {
+                        const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+                        if(uDoc.exists()) {
+                            window.userData = uDoc.data();
+                        } else {
+                            window.userData = { uid: currentUser.uid, name: currentUser.email.split('@')[0], email: currentUser.email, status: "Hey there! I am using RonzChat." };
+                            await setDoc(doc(db, "users", currentUser.uid), window.userData);
+                        }
+                    } catch(e) {
+                        window.userData = { uid: currentUser.uid, name: currentUser.email.split('@')[0], email: currentUser.email, status: "Active User" };
+                    }
+                    enterApp();
+                }
+            });
+        }
+
+        document.getElementById('tab-login-btn').addEventListener('click', () => {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('reg-form').classList.add('hidden');
+            document.getElementById('tab-login-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-white bg-pill-blue shadow-md transition-all";
+            document.getElementById('tab-reg-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-blue-600 transition-all";
+        });
+
+        document.getElementById('tab-reg-btn').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('reg-form').classList.remove('hidden');
+            document.getElementById('tab-reg-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-white bg-pill-blue shadow-md transition-all";
+            document.getElementById('tab-login-btn').className = "flex-1 py-3 text-xs font-extrabold rounded-full text-gray-500 hover:text-blue-600 transition-all";
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+            if(!email || !pass) return;
+
+            try {
+                const res = await signInWithEmailAndPassword(auth, email, pass);
+                currentUser = res.user;
+                const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if(uDoc.exists()) {
+                    window.userData = uDoc.data();
+                } else {
+                    window.userData = { uid: currentUser.uid, name: email.split('@')[0], email: email, status: "Hey there!" };
+                    await setDoc(doc(db, "users", currentUser.uid), window.userData);
+                }
+                enterApp();
+            } catch(err) {
+                showToast("Login Failed: " + err.message);
+            }
+        });
+
+        document.getElementById('reg-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-pass').value.trim();
+            if(!name || !email || !pass) return;
+
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                currentUser = res.user;
+                window.userData = { uid: currentUser.uid, name: name, email: email, status: "Hey there! I am using RonzChat." };
+                await setDoc(doc(db, "users", currentUser.uid), window.userData);
+                enterApp();
+            } catch(err) {
+                showToast("Registration Failed: " + err.message);
+            }
+        });
+
+        document.getElementById('demo-btn-action').addEventListener('click', () => {
+            isDemoMode = true;
+            currentUser = { uid: "demo_user_123" };
+            window.userData = { name: "Ronz Davil (Demo)", status: "Pill Elite Light Mode" };
+            contactUnreadCounts['demo_c1'] = 1; 
+            contactLastMsgs['demo_c1'] = { text: "Hey! Light Pill UI active.", time: new Date() };
+            showToast("Entered Instant Demo Mode!", "success");
+            enterApp();
+        });
+
+        function enterApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-chat').classList.remove('hidden');
+            updateProfileUI();
+            loadContacts();
+        }
+
+        function updateProfileUI() {
+            document.getElementById('my-name').innerText = window.userData.name || 'User';
+            document.getElementById('my-status').innerText = window.userData.status || 'Hey there!';
+            document.getElementById('my-avatar').innerText = (window.userData.name || 'U').charAt(0).toUpperCase();
+        }
+
+        function loadContacts() {
+            if(isDemoMode) {
+                contactsCache = [
+                    { uid: 'demo_c1', name: 'Support Bot', email: 'bot@ronzchat.com', status: 'Light Glassy Assistant' },
+                    { uid: 'demo_c2', name: 'Ronz Support', email: 'support@ronzchat.com', status: 'AI System Helper' }
+                ];
+                renderContacts(contactsCache);
+                return;
+            }
+
+            try {
+                contactUnsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
+                    contactsCache = [];
+                    snapshot.forEach(docSnap => {
+                        if(docSnap.id !== currentUser.uid) {
+                            const cData = { uid: docSnap.id, ...docSnap.data() };
+                            contactsCache.push(cData);
+                            listenForUnreadMessages(cData.uid);
+                        }
+                    });
+                    renderContacts(contactsCache);
+                }, (error) => {});
+            } catch(e) {}
+        }
+
+        function listenForUnreadMessages(contactUid) {
+            if(unreadListeners[contactUid]) return;
+
+            const chatId = [currentUser.uid, contactUid].sort().join('_');
+            const msgColRef = collection(db, "chats", chatId, "messages");
+
+            unreadListeners[contactUid] = onSnapshot(msgColRef, (snap) => {
+                let unreadCount = 0;
+                let msgsList = [];
+
+                snap.forEach(dSnap => {
+                    const data = dSnap.data();
+                    msgsList.push({ id: dSnap.id, ...data });
+                    if(data.senderId === contactUid && data.read === false && (!activeContact || activeContact.uid !== contactUid)) {
+                        unreadCount++;
+                    }
+                });
+
+                if(activeContact && activeContact.uid === contactUid) {
+                    unreadCount = 0;
+                    msgsList.forEach(m => {
+                        if(m.senderId === contactUid && m.read === false) {
+                            updateDoc(doc(db, "chats", chatId, "messages", m.id), { read: true }).catch(err => {});
+                        }
+                    });
+                }
+
+                contactUnreadCounts[contactUid] = unreadCount;
+
+                msgsList.sort((a, b) => {
+                    const tA = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds : 0;
+                    const tB = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds : 0;
+                    return tA - tB;
+                });
+
+                if(msgsList.length > 0) {
+                    const lastM = msgsList[msgsList.length - 1];
+                    contactLastMsgs[contactUid] = {
+                        text: lastM.imageUrl ? '📷 Photo' : (lastM.text || ''),
+                        time: lastM.timestamp
+                    };
+                }
+
+                renderContacts(contactsCache);
+            }, err => {});
+        }
+
+        function renderContacts(list) {
+            const listEl = document.getElementById('contacts-list');
+            listEl.innerHTML = '';
+
+            if(!list || list.length === 0) {
+                listEl.innerHTML = `<div class="p-6 text-center text-gray-400 text-xs font-medium">No registered users found.</div>`;
+                return;
+            }
+
+            list.forEach(c => {
+                const unread = contactUnreadCounts[c.uid] || 0;
+                const lastMsgData = contactLastMsgs[c.uid];
+                const lastMsgText = lastMsgData ? lastMsgData.text : (c.status || 'Hey there!');
+                const lastMsgTimeStr = lastMsgData ? formatTime(lastMsgData.time) : '';
+
+                const item = document.createElement('div');
+                item.className = "flex items-center p-3.5 mx-2 my-1 cursor-pointer rounded-full hover:bg-blue-500/10 transition-all relative group animate-pill";
+                item.onclick = () => selectContact(c);
+                item.innerHTML = `
+                    <div class="relative mr-3.5 flex-shrink-0">
+                        <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center font-bold text-sm shadow-md">${(c.name || 'U').charAt(0).toUpperCase()}</div>
+                    </div>
+                    <div class="flex-1 min-w-0 pr-6">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h4 class="font-bold text-gray-900 text-xs truncate">${c.name || 'User'}</h4>
+                            <span class="text-[10px] ${unread > 0 ? 'text-blue-600 font-extrabold' : 'text-gray-400'} ml-2">${lastMsgTimeStr}</span>
+                        </div>
+                        <p class="text-[11px] ${unread > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'} truncate">${escapeHTML(lastMsgText)}</p>
+                    </div>
+                    ${unread > 0 ? `
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-pill-blue text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg shadow-blue-500/40">${unread}</div>
+                    ` : ''}
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const queryVal = e.target.value.toLowerCase();
+            const filtered = contactsCache.filter(c => (c.name || '').toLowerCase().includes(queryVal));
+            renderContacts(filtered);
+        });
+
+        function selectContact(c) {
+            activeContact = c;
+            contactUnreadCounts[c.uid] = 0;
+            renderContacts(contactsCache);
+
+            document.getElementById('no-chat').classList.add('hidden');
+            document.getElementById('active-chat').classList.remove('hidden');
+            document.getElementById('chat-name').innerText = c.name || 'User';
+            document.getElementById('chat-avatar').innerText = (c.name || 'C').charAt(0).toUpperCase();
+
+            if(activeContactStatusListener) activeContactStatusListener();
+            if(!isDemoMode) {
+                activeContactStatusListener = onSnapshot(doc(db, "users", c.uid), (docSnap) => {
+                    if(docSnap.exists()) {
+                        const data = docSnap.data();
+                        const statusEl = document.getElementById('chat-sub-status');
+                        if(data.typingTo === currentUser.uid) {
+                            statusEl.innerText = "typing...";
+                            statusEl.className = "text-[11px] text-blue-600 font-bold animate-pulse";
+                        } else {
+                            statusEl.innerText = c.status || "Hey there!";
+                            statusEl.className = "text-[11px] text-gray-500 font-medium truncate max-w-[200px]";
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('chat-sub-status').innerText = c.status || "Hey there!";
+            }
+
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('chat-window').classList.remove('hidden');
+                document.getElementById('chat-window').classList.add('flex');
+            }
+
+            loadMessages(c.uid);
+        }
+
+        function loadMessages(targetUid) {
+            if(msgUnsubscribe) {
+                msgUnsubscribe();
+                msgUnsubscribe = null;
+            }
+
+            if(isDemoMode) {
+                renderMessages([
+                    { senderId: targetUid, text: 'Hey! Pure White glassy light mode active.', read: true, timestamp: { seconds: Math.floor(Date.now()/1000) - 60 } },
+                    { senderId: currentUser.uid, text: 'Dark mode has been completely removed.', read: true, timestamp: { seconds: Math.floor(Date.now()/1000) } }
+                ]);
+                return;
+            }
+
+            try {
+                const chatId = [currentUser.uid, targetUid].sort().join('_');
+                const msgColRef = collection(db, "chats", chatId, "messages");
+
+                msgUnsubscribe = onSnapshot(msgColRef, (snap) => {
+                    const rawMsgs = [];
+                    snap.forEach(dSnap => {
+                        const mData = dSnap.data();
+                        rawMsgs.push({ id: dSnap.id, ...mData });
+
+                        if(mData.senderId === targetUid && mData.read === false) {
+                            updateDoc(doc(db, "chats", chatId, "messages", dSnap.id), { read: true }).catch(err => {});
+                        }
+                    });
+
+                    rawMsgs.sort((a, b) => {
+                        const tA = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds : 0;
+                        const tB = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds : 0;
+                        return tA - tB;
+                    });
+
+                    renderMessages(rawMsgs);
+                }, (error) => {
+                    renderMessages([]);
+                });
+            } catch(e) {
+                renderMessages([]);
+            }
+        }
+
+        function renderMessages(msgs) {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+
+            if(!msgs || msgs.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 text-xs my-auto py-12">No messages yet. Send a message to start chatting!</div>`;
+                return;
+            }
+
+            let lastDateLabel = '';
+
+            msgs.forEach(m => {
+                const isMe = m.senderId === currentUser.uid;
+                const timeStr = formatTime(m.timestamp);
+                const dateLabel = formatDateLabel(m.timestamp);
+
+                if(dateLabel && dateLabel !== lastDateLabel) {
+                    lastDateLabel = dateLabel;
+                    const dateBadge = document.createElement('div');
+                    dateBadge.className = "flex justify-center my-4";
+                    dateBadge.innerHTML = `
+                        <span class="glass-light text-gray-500 text-[10px] font-bold px-4 py-1.5 rounded-full shadow-sm">
+                            ${dateLabel}
+                        </span>
+                    `;
+                    container.appendChild(dateBadge);
+                }
+
+                let tickIcon = '';
+                if(isMe) {
+                    if(!m.timestamp) {
+                        tickIcon = `<i class="fa-regular fa-clock text-[10px] text-white/70 ml-1"></i>`;
+                    } else if(m.read) {
+                        tickIcon = `<i class="fa-solid fa-check-double text-[10px] text-cyan-200 ml-1"></i>`;
+                    } else {
+                        tickIcon = `<i class="fa-solid fa-check-double text-[10px] text-white/70 ml-1"></i>`;
+                    }
+                }
+
+                const msgWrapper = document.createElement('div');
+                msgWrapper.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-2.5 animate-pill`;
+
+                let contentHtml = '';
+                if(m.imageUrl) {
+                    contentHtml = `<div class="mb-1.5 rounded-3xl overflow-hidden max-w-[260px] shadow-sm"><img src="${m.imageUrl}" alt="Shared Photo" class="w-full object-cover rounded-3xl cursor-pointer hover:scale-105 transition duration-300" onclick="window.open('${m.imageUrl}', '_blank')"></div>`;
+                }
+                if(m.text) {
+                    contentHtml += `<div class="pr-14 break-words leading-relaxed">${escapeHTML(m.text)}</div>`;
+                }
+
+                msgWrapper.innerHTML = `
+                    <div class="max-w-[80%] sm:max-w-[70%] px-5 py-3.5 rounded-[28px] text-xs sm:text-sm ${
+                        isMe 
+                            ? 'bg-pill-blue text-white rounded-tr-sm shadow-lg shadow-blue-500/25' 
+                            : 'bg-white text-gray-900 rounded-tl-sm shadow-md border border-blue-500/10'
+                    } relative group">
+                        ${contentHtml}
+                        <div class="float-right text-[9px] ${isMe ? 'text-white/80' : 'text-gray-400'} flex items-center -mb-1 ml-3 select-none self-end">
+                            <span>${timeStr}</span>
+                            ${tickIcon}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(msgWrapper);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Image Attachment Handler
+        document.getElementById('attach-img-btn').addEventListener('click', () => {
+            document.getElementById('image-file-input').click();
+        });
+
+        document.getElementById('image-file-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(!file || !activeContact) return;
+
+            if(file.size > 1024 * 1024 * 2) {
+                showToast("Image size should be less than 2MB");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(uploadEvent) {
+                const base64Image = uploadEvent.target.result;
+                if(isDemoMode) {
+                    const container = document.getElementById('messages-container');
+                    const msgWrapper = document.createElement('div');
+                    msgWrapper.className = `flex justify-end mb-2.5 animate-pill`;
+                    msgWrapper.innerHTML = `
+                        <div class="max-w-[80%] px-5 py-3.5 rounded-[28px] text-xs bg-pill-blue text-white rounded-tr-sm shadow-lg">
+                            <div class="mb-1.5 rounded-3xl overflow-hidden max-w-[260px]"><img src="${base64Image}" class="w-full object-cover rounded-3xl"></div>
+                            <div class="float-right text-[9px] text-white/80 flex items-center -mb-1 ml-3">
+                                <span>${formatTime(new Date())}</span>
+                                <i class="fa-solid fa-check-double text-[10px] text-cyan-200 ml-1"></i>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(msgWrapper);
+                    container.scrollTop = container.scrollHeight;
+                    return;
+                }
+
+                try {
+                    const chatId = [currentUser.uid, activeContact.uid].sort().join('_');
+                    await addDoc(collection(db, "chats", chatId, "messages"), {
+                        senderId: currentUser.uid,
+                        imageUrl: base64Image,
+                        text: "",
+                        read: false,
+                        timestamp: serverTimestamp()
+                    });
+                } catch(err) {
+                    showToast("Failed to send image: " + err.message);
+                }
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        document.getElementById('msg-input').addEventListener('input', () => {
+            if(!isDemoMode && currentUser && activeContact) {
+                clearTimeout(typingTimeout);
+                updateDoc(doc(db, "users", currentUser.uid), { typingTo: activeContact.uid }).catch(()=>{});
+                typingTimeout = setTimeout(() => {
+                    updateDoc(doc(db, "users", currentUser.uid), { typingTo: null }).catch(()=>{});
+                }, 2000);
+            }
+        });
+
+        async function handleSendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if(!text || !activeContact) return;
+            input.value = '';
+
+            if(!isDemoMode && currentUser) {
+                updateDoc(doc(db, "users", currentUser.uid), { typingTo: null }).catch(()=>{});
+            }
+
+            if(isDemoMode) {
+                const container = document.getElementById('messages-container');
+                const msgWrapper = document.createElement('div');
+                msgWrapper.className = `flex justify-end mb-2.5 animate-pill`;
+                msgWrapper.innerHTML = `
+                    <div class="max-w-[80%] px-5 py-3.5 rounded-[28px] text-xs sm:text-sm bg-pill-blue text-white rounded-tr-sm shadow-lg">
+                        <div class="pr-14">${escapeHTML(text)}</div>
+                        <div class="float-right text-[9px] text-white/80 flex items-center -mb-1 ml-3">
+                            <span>${formatTime(new Date())}</span>
+                            <i class="fa-solid fa-check-double text-[10px] text-cyan-200 ml-1"></i>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(msgWrapper);
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
+
+            try {
+                const chatId = [currentUser.uid, activeContact.uid].sort().join('_');
+                await addDoc(collection(db, "chats", chatId, "messages"), {
+                    senderId: currentUser.uid,
+                    text: text,
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+            } catch(err) {
+                showToast("Failed to send message: " + err.message);
+            }
+        }
+
+        // Profile Settings Modal
+        const settingsModal = document.getElementById('settings-modal');
+        const openProfileModal = () => {
+            document.getElementById('edit-name-input').value = window.userData.name || '';
+            document.getElementById('edit-status-input').value = window.userData.status || 'Hey there! I am using RonzChat.';
+            settingsModal.classList.remove('hidden');
+        };
+
+        document.getElementById('open-settings-btn').addEventListener('click', openProfileModal);
+        document.getElementById('profile-settings-icon-btn').addEventListener('click', openProfileModal);
+        document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        document.getElementById('save-settings-btn').addEventListener('click', async () => {
+            const newName = document.getElementById('edit-name-input').value.trim();
+            const newStatus = document.getElementById('edit-status-input').value.trim();
+
+            if(!newName) {
+                showToast("Name cannot be empty!");
+                return;
+            }
+
+            window.userData.name = newName;
+            window.userData.status = newStatus;
+            updateProfileUI();
+
+            if(!isDemoMode && currentUser) {
+                try {
+                    await updateDoc(doc(db, "users", currentUser.uid), {
+                        name: newName,
+                        status: newStatus
+                    });
+                    showToast("Profile updated successfully!", "success");
+                } catch(e) {}
+            }
+            settingsModal.classList.add('hidden');
+        });
+
+        // Contact Profile View Modal
+        const profileViewModal = document.getElementById('profile-view-modal');
+        document.getElementById('chat-header-info').addEventListener('click', () => {
+            if(!activeContact) return;
+            document.getElementById('view-profile-name').innerText = activeContact.name || 'User';
+            document.getElementById('view-profile-email').innerText = activeContact.email || activeContact.uid;
+            document.getElementById('view-profile-status').innerText = activeContact.status || 'Hey there!';
+            document.getElementById('view-profile-avatar').innerText = (activeContact.name || 'U').charAt(0).toUpperCase();
+            profileViewModal.classList.remove('hidden');
+        });
+        document.getElementById('close-profile-view-btn').addEventListener('click', () => profileViewModal.classList.add('hidden'));
+
+        // Clear Chat Feature
+        document.getElementById('clear-chat-btn').addEventListener('click', async () => {
+            if(!activeContact) return;
+            if(!confirm("Are you sure you want to clear all messages in this chat?")) return;
+
+            if(isDemoMode) {
+                document.getElementById('messages-container').innerHTML = `<div class="text-center text-gray-400 text-xs my-auto py-12">No messages yet. Send a message to start chatting!</div>`;
+                showToast("Chat cleared successfully", "success");
+                return;
+            }
+
+            try {
+                const chatId = [currentUser.uid, activeContact.uid].sort().join('_');
+                const msgColRef = collection(db, "chats", chatId, "messages");
+                const snap = await getDocs(msgColRef);
+                const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+                await Promise.all(deletePromises);
+                showToast("Chat cleared successfully", "success");
+            } catch(e) {
+                showToast("Failed to clear chat");
+            }
+        });
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        document.getElementById('send-btn').addEventListener('click', handleSendMessage);
+        document.getElementById('msg-input').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') handleSendMessage();
+        });
+
+        document.getElementById('back-btn').addEventListener('click', () => {
+            activeContact = null;
+            if(activeContactStatusListener) {
+                activeContactStatusListener();
+                activeContactStatusListener = null;
+            }
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('chat-window').classList.add('hidden');
+            document.getElementById('chat-window').classList.remove('flex');
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            if(!isDemoMode && auth) {
+                await signOut(auth);
+            }
+            location.reload();
+        });
+    </script>
+</body>
+</html>
